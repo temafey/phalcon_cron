@@ -7,11 +7,9 @@
     "license": "MIT",
     "require": {
         "php": ">=5.4.0",
-        "phalcon/incubator": "dev-master",
-        "phalcon/devtools": "dev-master",
         "videlalvaro/php-amqplib": "v2.1.0",
         "videlalvaro/thumper": "v0.3.2",
-        "mtdowling/cron-expression": "dev-master"
+        "mtdowling/cron-expression": "v1.0.3"
     },
     "autoload": {
         "psr-0": {
