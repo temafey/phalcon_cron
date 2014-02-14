@@ -2,7 +2,7 @@
 /**
  * @namespace
  */
-namespace CronManager\Queue\Job\Queue;
+namespace CronManager\Queue\Job;
 
 use CronManager\Manager\Executable,
     CronManager\Traits\Daemon\Socket\Client,
@@ -10,7 +10,7 @@ use CronManager\Manager\Executable,
 
 /**
  * Class Consumer
- * @package CronManager\Queue\Job\Queue
+ * @package CronManager\Queue\Job
  */
 class Consumer extends Executable
 {

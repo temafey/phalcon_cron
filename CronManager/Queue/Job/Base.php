@@ -2,7 +2,7 @@
 /**
  * @namespace
  */
-namespace CronManager\Queue\Job\Queue;
+namespace CronManager\Queue\Job;
 
 use CronManager\Manager\Executable;
 

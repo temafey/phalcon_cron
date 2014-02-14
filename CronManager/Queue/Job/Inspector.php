@@ -2,7 +2,7 @@
 /**
  * @namespace
  */
-namespace CronManager\Queue\Job\Queue;
+namespace CronManager\Queue\Job;
 
 use CronManager\Manager\Executable,
 	CronManager\Queue\Model\Process,
@@ -12,7 +12,7 @@ use CronManager\Manager\Executable,
 
 /**
  * Class Inspector
- * @package CronManager\Queue\Job\Queue
+ * @package CronManager\Queue\Job
  */
 class Inspector extends Executable 
 {	
@@ -130,7 +130,7 @@ class Inspector extends Executable
 	 * 
 	 * @param \CronManager\Queue\Model\Process $pid
 	 * @param string $status
-	 * @return \CronManager\Queue\Job\Queue\Inspector
+	 * @return \CronManager\Queue\Job\Inspector
 	 */
 	protected function _stopProcess(Process $process, $status = 'stopped')
 	{
@@ -151,7 +151,7 @@ class Inspector extends Executable
 	 * Add process to queue for run  
 	 *
 	 * @param \CronManager\Queue\Model\Process $process
-	 * @return \CronManager\Queue\Job\Queue\Inspector
+	 * @return \CronManager\Queue\Job\Inspector
 	 */
 	protected function _runProcess(Process $process)
 	{

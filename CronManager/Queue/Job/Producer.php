@@ -2,7 +2,7 @@
 /**
  * @namespace
  */
-namespace CronManager\Queue\Job\Queue;
+namespace CronManager\Queue\Job;
 
 use CronManager\Manager\Executable,
 	Cron\CronExpression,
@@ -14,7 +14,7 @@ use CronManager\Manager\Executable,
 
 /**
  * Class Producer
- * @package CronManager\Queue\Job\Queue
+ * @package CronManager\Queue\Job
  */
 class Producer extends Executable 
 {	
@@ -95,7 +95,7 @@ class Producer extends Executable
 	 * Load and set all cron jobs
 	 *
 	 * @param array $jobs
-	 * @return \CronManager\Queue\Job\Queue\Producer
+	 * @return \CronManager\Queue\Job\Producer
 	 */
 	public function setJobs()
 	{
@@ -116,7 +116,7 @@ class Producer extends Executable
 	/**
 	 * Clear cron jobs
 	 *
-	 * @return \CronManager\Queue\Job\Queue\Producer
+	 * @return \CronManager\Queue\Job\Producer
 	 */
 	public function clearJobs()
 	{
@@ -173,7 +173,7 @@ class Producer extends Executable
 	 * Add job task to queue
 	 *
 	 * @param array $job
-	 * @return \CronManager\Queue\Job\Queue\Producer
+	 * @return \CronManager\Queue\Job\Producer
 	 */
 	protected function _runJob(array $job)
 	{

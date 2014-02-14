@@ -2,7 +2,7 @@
 /**
  * @namespace
  */
-namespace CronManager\Queue\Job\Queue;
+namespace CronManager\Queue\Job;
 
 use CronManager\Manager\AbstractManager,
 	CronManager\Traits\DIaware,
@@ -14,7 +14,7 @@ use CronManager\Manager\AbstractManager,
 
 /**
  * Class Manager
- * @package CronManager\Queue\Job\Queue
+ * @package CronManager\Queue\Job
  */
 class Manager extends AbstractManager 
 {	
@@ -76,6 +76,12 @@ class Manager extends AbstractManager
      * @var string
      */
     protected $_queuePublishErrorMessage = '';
+
+    /**
+     * File name for running cron manager tasks
+     * @var string
+     */
+    protected $_mainRunTaskFile = 'cron.php';
 
 	/**
 	 * Constructor
@@ -318,7 +324,7 @@ class Manager extends AbstractManager
 			]
 		];*/
 		
-		return $this->startJob($documentRoot."/index.php cron-producer init", 'cron_producer', $observers);
+		return $this->startJob($documentRoot."/".$this->_mainRunTaskFile." cron-producer init", 'cron_producer', $observers);
 	}
 	
 	/**
@@ -332,7 +338,7 @@ class Manager extends AbstractManager
 		$this->notify();
 		$observers = [];
 		
-		return $this->startJob($documentRoot."/index.php cron-consumer init", 'cron_consumer', $observers);
+		return $this->startJob($documentRoot."/".$this->_mainRunTaskFile." cron-consumer init", 'cron_consumer', $observers);
 	}
 	
 	/**
@@ -346,7 +352,7 @@ class Manager extends AbstractManager
 		$this->notify();
 		$observers = [];
 		
-		return $this->startJob($documentRoot."/index.php cron-inspector init", 'cron_inspector', $observers);
+		return $this->startJob($documentRoot."/".$this->_mainRunTaskFile." cron-inspector init", 'cron_inspector', $observers);
 	}
 	
 	/**

@@ -2,11 +2,11 @@
 /**
  * @namespace
  */
-namespace CronManager\Queue\Job\Queue\Producer;
+namespace CronManager\Queue\Job\Producer;
 
 /**
  * Class Add
- * @package CronManager\Queue\Job\Queue\Producer
+ * @package CronManager\Queue\Job\Producer
  */
 trait Add  
 {	
@@ -37,7 +37,7 @@ trait Add
 	 * Add job to queue
 	 *
 	 * @param  array $job
-	 * @return \CronManager\Queue\Job\Queue\Producer\Add
+	 * @return \CronManager\Queue\Job\Producer\Add
 	 */
 	protected function _addQueue(array $task)
 	{
