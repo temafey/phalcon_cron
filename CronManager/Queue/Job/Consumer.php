@@ -39,7 +39,7 @@ class Consumer extends Executable
 
         $this->_consumerJob = new \Thumper\Consumer($this->_di->get('thumperConnection')->getConnection());
         $this->_consumerJob->setExchangeOptions(array('name' => $this->_config->rabbitmq->jobExchangeName, 'type' => $this->_config->rabbitmq->exchangeType));
-        $this->_consumerJob->setQueueOptions(array('name' => 'cron-cli-queue-job'));
+        $this->_consumerJob->setQueueOptions(array('name' => $this->_config->rabbitmq->queueName));
         //$this->_consumerJob->setRoutingKey();
         $this->_consumerJob->setCallback($this->_costumerHandler());
     }
