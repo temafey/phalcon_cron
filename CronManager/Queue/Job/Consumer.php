@@ -70,7 +70,7 @@ class Consumer extends Executable
 
         $consumer = new \Thumper\Consumer($this->_di->get('thumperConnection')->getConnection());
         $consumer->setExchangeOptions(array('name' => $this->_config->rabbitmq->managerExchangeName, 'type' => $this->_config->rabbitmq->exchangeType));
-        $consumer->setQueueOptions(array('name' => 'cron-cli-queue-manager'));
+        $consumer->setQueueOptions(array('name' => $this->_config->rabbitmq->queueName));
         $consumer->setCallback($this->_managerHandler());
         $consumer->consume(1);
 
