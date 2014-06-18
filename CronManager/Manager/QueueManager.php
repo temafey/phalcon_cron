@@ -50,7 +50,7 @@ class QueueManager
 		$manager = $this;
 		$callback = function ($params) use ($manager) {
 			$params = igbinary_unserialize($params);
-			$manager->dispatchMessage($params);
+			return $manager->dispatchMessage($params);
 		};
 	
 		return $callback;
@@ -71,10 +71,11 @@ class QueueManager
 	 */
 	protected function checkJobs()
 	{
+        echo "Check jobs".PHP_EOL;
 		$running_jobs = 0;
 		foreach ($this->_pool as $pid => $job) {
 			if (!$job->isRunning()) {
-				echo "Stopping job ".$this->_pool[$pid]->name()." ($pid)" . PHP_EOL;
+				echo "Stopping job ".$this->_pool[$pid]->name()." ($pid)".PHP_EOL;
 				$this->stopJob($pid);
 			} else {
 				$running_jobs++;
@@ -108,21 +109,16 @@ class QueueManager
 		// broadcast existing jobs
 		$this->checkJobs();
 
-		$free_pool_slots = self::POOL_MAX - count($this->_pool);
-
-		if ($free_pool_slots <= 0) {
-			// output error "no free slots in the pool"
-			return false;
-		}
-
 		if (!$this->existsFreePool()) {
+            echo "No exist free slots in the pool".PHP_EOL;
 			return false;
 		}
 
 		$job = new Job($cmd, $name);
+        echo "Execute new job $name ".PHP_EOL;
 		$job->execute();
 		$pid = $job->pid();
-		echo "Starting job $name ($pid) ". date("H:i:s") . PHP_EOL;
+		echo "Starting job $name ($pid) ".date("H:i:s").PHP_EOL;
 
 		$this->_pool[$pid] = $job;
 		$this->_streams[$pid] = $this->_pool[$pid]->getPipe();
@@ -151,6 +147,8 @@ class QueueManager
 		unset($this->_streams[$pid]);
 		unset($this->_stderr[$pid]);
 		unset($this->_pool[$pid]);
+
+        return true;
 	}
 
 	/**
@@ -218,10 +216,10 @@ class QueueManager
 	}
 
 	/**
-	 * 
+	 * Dispatch command
 	 * 
 	 * @param array $params
-	 * @return void
+	 * @return boolean
 	 */
 	public function dispatchMessage(array $params)
 	{
@@ -229,17 +227,19 @@ class QueueManager
 			case "exit":
 				$this->broadcastSignal(SIGTERM);
 				$this->_is_terminated = TRUE;
+                return true;
 				break;
 			case 'kill':
-				$this->stopJob($params['pid']);
+                return $this->stopJob($params['pid']);
 				break;
 			case "start":
 				$jobCmd = implode(" ", $params['args']);
 				$observers = isset($params['observers']) ? $params['observers'] : array();
-				$this->startJob($jobCmd, $params['name'], $observers);
+                return $this->startJob($jobCmd, $params['name'], $observers);
 				break;
 			default:
-				$this->dispatch($params);
+				//$this->dispatch($params);
+                return false;
 				break;
 		}
 	}

@@ -10,7 +10,9 @@ use CronManager\Manager\Executable,
 	CronManager\Cron\SecondsField,
 	DateTime,
 	DateTimeZone,
-	CronManager\Traits\Daemon\Logs;
+	CronManager\Traits\Daemon\Logs,
+    CronManager\Queue\Job\Connection\Init,
+    CronManager\Queue\Job\Producer\Add;
 
 /**
  * Class Producer
@@ -18,8 +20,11 @@ use CronManager\Manager\Executable,
  */
 class Producer extends Executable 
 {	
-	use Producer\Add,Logs;
-	
+	use  Init, Add, Logs {
+        Init::_init as _connectionInit;
+        Add::_init as _addInit;
+    }
+
 	/**
 	 * Queue objectg
 	 * @var \Thumper\Producer
@@ -43,7 +48,18 @@ class Producer extends Executable
 	 * @var \CronManager\Cron\SecondsField;
 	 */
 	protected $_seconds;
-	
+
+    /**
+     * Initialize configuration
+     *
+     * @return void
+     */
+    protected function _init()
+    {
+        $this->_connectionInit();
+        $this->_addInit();
+    }
+
 	/**
 	 * Start producer process
 	 * 
