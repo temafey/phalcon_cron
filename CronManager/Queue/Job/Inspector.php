@@ -8,21 +8,37 @@ use CronManager\Manager\Executable,
 	CronManager\Queue\Model\Process,
 	CronManager\Queue\Model\Job,
 	CronManager\Traits\Daemon\Socket\Client,
-	CronManager\Traits\Daemon\Logs;
+	CronManager\Traits\Daemon\Logs,
+    CronManager\Queue\Job\Connection\Init,
+    CronManager\Queue\Job\Producer\Add;
 
 /**
  * Class Inspector
  * @package CronManager\Queue\Job
  */
 class Inspector extends Executable 
-{	
-	use Producer\Add,Client,Logs;
+{
+    use  Init, Add, Client, Logs {
+        Init::_init as _connectionInit;
+        Add::_init as _addInit;
+    }
 
     /**
      * Configuration object
      * @var \Phalcon\Config
      */
     private $_config;
+
+    /**
+     * Initialize configuration
+     *
+     * @return void
+     */
+    protected function _init()
+    {
+        $this->_connectionInit();
+        $this->_addInit();
+    }
 	
 	/**
 	 * Start inspector process

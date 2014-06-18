@@ -10,7 +10,8 @@ use CronManager\Manager\AbstractManager,
 	CronManager\Traits\Daemon\Event,
 	CronManager\Traits\Daemon\Logs,
 	CronManager\Traits\Daemon\Socket\Server,
-	CronManager\Traits\Locking;
+	CronManager\Traits\Locking,
+    CronManager\Queue\Job\Connection\Init;
 
 /**
  * Class Manager
@@ -18,7 +19,9 @@ use CronManager\Manager\AbstractManager,
  */
 class Manager extends AbstractManager 
 {	
-	use DIaware,Fork,Event,Logs,Server,Locking;
+	use DIaware, Fork, Event, Logs, Server, Locking, Init {
+        Init::_init as _connectionInit;
+    }
 	
 	/**
 	 * Config
@@ -94,7 +97,19 @@ class Manager extends AbstractManager
 		//register_shutdown_function([$this, '__destruct']);
 		pcntl_signal(SIGTERM, [$this, '__destruct']);
 		$this->setDi($dependencyInjector);
+        $this->_init();
 	}
+
+    /**
+     * Initialize
+     *
+     * @return void
+     */
+    protected function _init()
+    {
+        $this->_connectionInit();
+    }
+
 	
 	/**
 	 * Destrcuctor
@@ -112,8 +127,8 @@ class Manager extends AbstractManager
 	 */
 	protected function _initQueue()
 	{
-		$this->_producer = new \Thumper\Producer($this->getDi()->get('thumperConnection')->getConnection());
-		$this->_producer->setExchangeOptions(['name' => $this->_config->rabbitmq->managerExchangeName, 'type' => $this->_config->rabbitmq->exchangeType]);
+		$this->_producer = new \Thumper\Producer($this->_connection);
+		$this->_producer->setExchangeOptions(['name' => $this->getManagerExchangeName(), 'type' => $this->_config->rabbitmq->exchangeType]);
 	}
 	
 	/**
@@ -200,7 +215,7 @@ class Manager extends AbstractManager
 		$allocateMemory = 0;
 		foreach ($this->_pool as $pid => $job) {
 			if (!$job->isRunning()) {
-				$this->_message .= "Stopping job ".$this->_pool[$pid]->name()." ($pid)".PHP_EOL;
+				$this->_message .= "Stopping job `".$this->_pool[$pid]->name()."`` ($pid)".PHP_EOL;
 				$this->stopJob($pid);
 			} else {
 				$job->setMessage(false);
@@ -242,12 +257,15 @@ class Manager extends AbstractManager
 			$this->notify();
 			return false;
 		}
-		$this->_initQueue();
-		
-		$write = NULL;
-		$except = NULL;
+
+        $write = NULL;
+        $except = NULL;
+
+        $this->_initQueue();
 		$this->_runMainProcesses();
-		sleep(2);
+        sleep(1);
+        $this->_producer->publish(1);
+        sleep(1);
 		while (!$this->_is_terminated) {
 			$this->_accessJob = $this->_queuePublish();
 			$this->_eventLoop();
@@ -309,7 +327,7 @@ class Manager extends AbstractManager
 	 */
 	protected function _runProducer($documentRoot)
 	{
-		$this->_message = "Run main process 'producer'";
+		$this->_message = "Run main process `producer`";
 		$this->notify();
 		$observers = [];
 		/*$observers = [
@@ -334,7 +352,7 @@ class Manager extends AbstractManager
 	 */
 	protected function _runConsumer($documentRoot)
 	{
-		$this->_message = "Run main process 'consumer'";
+		$this->_message = "Run main process `consumer`";
 		$this->notify();
 		$observers = [];
 		
@@ -348,7 +366,7 @@ class Manager extends AbstractManager
 	 */
 	protected function _runInspector($documentRoot)
 	{
-		$this->_message = "Run main process 'inspector'";
+		$this->_message = "Run main process `inspector`";
 		$this->notify();
 		$observers = [];
 		
@@ -406,7 +424,7 @@ class Manager extends AbstractManager
 		
 		foreach ($this->_pool as $pid => $job) {
 			//$job->signal(SIGINT);
-			$this->_message = "Stoping process '".$job->getName()."'";
+			$this->_message = "Stoping process `".$job->getName()."`";
 			$this->notify();
 			$this->stopJob($pid);
 		}
@@ -455,7 +473,7 @@ class Manager extends AbstractManager
 		if (!$this->getJob($this->_mainProcesses['producer'])) {
 			return; 
 		}
-		$this->_message = "Stop main process 'producer'";
+		$this->_message = "Stop main process `producer`";
 		$this->notify();
 		
 		$pid = $this->_mainProcesses['producer'];
@@ -473,7 +491,7 @@ class Manager extends AbstractManager
 		if (!$this->getJob($this->_mainProcesses['consumer'])) {
 			return;
 		}
-		$this->_message = "Stop main process 'consumer'";
+		$this->_message = "Stop main process `consumer`";
 		$this->notify();
 		
 		$pid = $this->_mainProcesses['consumer'];
@@ -485,7 +503,7 @@ class Manager extends AbstractManager
 		}
 		$producer = new \Thumper\Producer($this->getDi()->get('thumperConnection')->getConnection());
 		$producer->setExchangeOptions(['name' => $this->_config->rabbitmq->jobExchangeName, 'type' => $this->_config->rabbitmq->exchangeType]);
-		$producer->publish(igbinary_serialize([]));
+		$producer->publish(serialize([]));
 		
 		$this->stopJob($pid);
 	}
@@ -500,7 +518,7 @@ class Manager extends AbstractManager
 		if (!$this->getJob($this->_mainProcesses['inspector'])) {
 			return;
 		}
-		$this->_message = "Stop main process 'inspector'";
+		$this->_message = "Stop main process `inspector`";
 		$this->notify();
 		
 		$pid = $this->_mainProcesses['inspector'];
@@ -524,7 +542,7 @@ class Manager extends AbstractManager
 			case 'cron_consumer':
 			case 'cron_producer':
 			case 'cron_inspector':
-				$this->_message = strtoupper(str_replace("_", " ", $name))." PID: ".$pid.", message: ".$message.PHP_EOL;
+				$this->setMessage(strtoupper(str_replace("_", " ", $name))." PID: ".$pid.", message: ".$message);
 				$this->notify();
 				break;
 		}
@@ -538,7 +556,7 @@ class Manager extends AbstractManager
 	public function startJob($cmd, $name = 'job', array $observers = array())
 	{
 		if (!($pid = parent::startJob($cmd, $name , $observers))) {
-			$this->_message = "Job ".$name." not started".PHP_EOL;
+			$this->setMessage("Job `".$name."` not started");
 			$this->notify();
 			return false;
 		}
@@ -646,7 +664,7 @@ class Manager extends AbstractManager
 			return false;
 		}
 		
-		$this->_message = "Publish access to add new job".PHP_EOL;
+		$this->setMessage("Publish access to add new job");
 		$this->notify();
 		
 		$this->_queuePublishErrorMessage = false;
@@ -725,7 +743,9 @@ class Manager extends AbstractManager
 	public function onRead($buffer, $id) 
 	{
 		$content = $this->_readEventBuffer($id, 256);
-		if (($params = json_decode($content, true))) {
+        $this->setMessage('Read new message from socket');
+        $this->notify();
+		if (($params = unserialize($content))) {
 			$this->_dispatch($params);
 		} else {
 			var_dump($content);

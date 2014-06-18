@@ -24,13 +24,15 @@ trait Add
 	protected function _init()
 	{
 		$this->_connect();
+
+        parent::_init();
 	}
 	
 	protected function _connect()
 	{
 		$config = $this->getDi()->get('config');
-		$this->_queueProducer = new \Thumper\Producer($this->getDi()->get('thumperConnection')->getConnection());
-		$this->_queueProducer->setExchangeOptions(['name' => $config->rabbitmq->jobExchangeName, 'type' => $config->rabbitmq->exchangeType]);
+		$this->_queueProducer = new \Thumper\Producer($this->_connection);
+		$this->_queueProducer->setExchangeOptions(['name' => $this->getJobExchangeName(), 'type' => $config->rabbitmq->exchangeType]);
 	}
 	
 	/**
@@ -42,13 +44,13 @@ trait Add
 	protected function _addQueue(array $task)
 	{
 		try {
-			$this->_queueProducer->publish(igbinary_serialize($task));
+			$this->_queueProducer->publish(serialize($task));
 		} catch (\Exception $e) {
 			$this->_message = $e->getMessage();
-			$this->notify();
+			$this->notify(2);
 			
 			$this->_connect();
-			$this->_queueProducer->publish(igbinary_serialize($task));
+			$this->_queueProducer->publish(serialize($task));
 		}
 		$this->_message = "Add new job `".$task['name']."` in queue";
 		$this->notify();

@@ -168,7 +168,6 @@ class Job
      */
     public function execute() 
     {
-        // определяем откуда будет читать и куда писать процесс
         $descriptorspec = array(
             0 => array('pipe', 'r'),  // stdin
             1 => array('pipe', 'w'),  // stdout

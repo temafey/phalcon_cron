@@ -57,7 +57,7 @@ abstract class AbstractManager
 		$running_jobs = 0;
 		foreach ($this->_pool as $pid => $job) {
 			if (!$job->isRunning()) {
-				$this->_message = "Stopping job ".$this->_pool[$pid]->name()." ($pid)" . PHP_EOL;
+				$this->_message = "Stop job `".$this->_pool[$pid]->name()."` ($pid)" . PHP_EOL;
 				$this->notify();
 				$this->stopJob($pid);
 			} else {
@@ -75,7 +75,16 @@ abstract class AbstractManager
 	 */
 	protected function _existsFreePool()
 	{
-		return (count($this->_pool) < $this->_MAX_POOL) ? true : false;
+        $freePoolSlots = $this->_MAX_POOL - count($this->_pool);
+        if ($freePoolSlots > 0) {
+            $this->setMessage($freePoolSlots." existing pool");
+            $this->notify();
+            return true;
+        } else {
+            $this->setMessage("No free slots in the pool");
+            $this->notify();
+            return false;
+        }
 	}
 
 	/**
@@ -92,21 +101,12 @@ abstract class AbstractManager
 		// broadcast existing jobs
 		$this->checkJobs();
 
-		/**$free_pool_slots = $this->_MAX_POOL - count($this->_pool);
-
-		if ($free_pool_slots <= 0) {
-			// output error "no free slots in the pool"
-			return false;
-		}
-
-		if (!$this->_existsFreePool()) {
-			return false;
-		}*/
-
+        $this->setMessage("Execute job `".$name."`");
+        $this->notify();
 		$job = new Job($cmd, $name);
 		$job->execute();
 		$pid = $job->pid();
-		$this->_message = "Starting job $name ($pid) ".date("H:i:s").PHP_EOL;
+		$this->_message = "Start job `$name` ($pid) ".date("H:i:s").PHP_EOL;
 		$this->notify();
 		
 		$this->_pool[$pid] = $job;
@@ -241,7 +241,7 @@ abstract class AbstractManager
 	public function show($pid = null)
 	{
 		if ($this->checkJobs() == 0) {
-			$this->_message = "No running jobs\n";
+			$this->setMessage("No running jobs");
 			$this->notify();
 		}
 
@@ -266,7 +266,7 @@ abstract class AbstractManager
 			return;
 		}
 		if (false === ($num_changed_streams = stream_select($read, $write, $except, $this->_streamTimeoutSecond, $this->_streamTimeoutMicrosecond))) {
-			$this->_message = "Some stream error\n";
+			$this->setMessage("Some stream error");
 			$this->notify();
 			return;
 		}
@@ -282,7 +282,6 @@ abstract class AbstractManager
 			if ($pid === FALSE) {
 				continue;
 			}
-			// читаем сообщения процессов
 			$pool_content = $this->pipeline($pid, TRUE);
 			$this->_processMessage($pid, $pool_content, 1);
 			$pool_error = $this->stderr($pid, TRUE);
@@ -296,7 +295,7 @@ abstract class AbstractManager
 			}
 
 			if ($pool_error) {
-				$this->_message = $job_name ." ($pool_index)" . ' [STDERR]: ' . $pool_error.PHP_EOL;
+				$this->setMessage($job_name." ($pool_index)".' [STDERR]: '.$pool_error);
 				$this->notify();
 			}
 		}
