@@ -43,7 +43,13 @@ trait Server
 	 */
 	protected function _initSocket()
 	{
-		$this->_errno = 0;
+        $sockFile = sys_get_temp_dir() . '/php.cron.manager.sock';
+
+        if (file_exists($sockFile)) {
+            unlink ($sockFile);
+        }
+
+        $this->_errno = 0;
 		$this->_errstr = '';
 		$this->_socket = stream_socket_server($this->_socketFile, $this->_errno, $this->_errstr);
 		if (!$this->_socket) {

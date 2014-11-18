@@ -122,7 +122,12 @@ class Producer extends Executable
 		}
 		$this->_jobs = $cronjobs;
 		foreach ($this->_jobs as $job) {
-			$this->_crontabs[$job['id']] = CronExpression::factory($job['minute']." ".$job['hour']." ".$job['day']." ".$job['month']." ".$job['week_day']);
+            try {
+                $this->_crontabs[$job['id']] = CronExpression::factory($job['minute']." ".$job['hour']." ".$job['day']." ".$job['month']." ".$job['week_day']);
+            } catch (\Exception $e) {
+                $this->_message = "Error in cron expression: " . $job['minute']." ".$job['hour']." ".$job['day']." ".$job['month']." ".$job['week_day'];
+                $this->notify(2);
+            }
 		}
 		$this->_seconds = new SecondsField();
 	
@@ -154,7 +159,7 @@ class Producer extends Executable
 		$jobs = [];
 		foreach ($this->_jobs as $job) {
 			$tmpDatetime = clone $datetime;
-			if (!$this->_crontabs[$job['id']]->isDue($tmpDatetime->modify("+1 minute"))) {
+            if (isset($this->_crontabs[$job['id']]) && !$this->_crontabs[$job['id']]->isDue($tmpDatetime->modify("+1 minute"))) {
 				continue;
 			}
 			$jobs[] = $job;
