@@ -1,6 +1,8 @@
 <?php
 namespace CronManager\Traits\Daemon\Socket;
 
+use CronManager\Tools\Stuff\PidChecker;
+
 trait Server
 {
     /**
@@ -44,6 +46,10 @@ trait Server
      */
     protected function _initSocket()
     {
+        $pidFile = sys_get_temp_dir() . '/php.apppicker-cron2.manager.pid';
+        $pidChecker = new PidChecker();
+        $pidChecker->checkPidExists($pidFile);
+
         $this->_errno = 0;
         $this->_errstr = '';
         $this->_socket = stream_socket_server($this->_socketFile, $this->_socketErrno, $this->_socketErrstr, 5);
