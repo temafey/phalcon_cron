@@ -46,7 +46,7 @@ trait Server
      */
     protected function _initSocket()
     {
-        $pidFile = sys_get_temp_dir() . '/php.apppicker-cron2.manager.pid';
+        $pidFile = $this->_pidFile;
         $pidChecker = new PidChecker();
         $pidChecker->checkPidExists($pidFile);
 

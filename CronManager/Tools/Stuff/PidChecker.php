@@ -5,7 +5,7 @@ namespace CronManager\Tools\Stuff;
 class PidChecker
 {
     public function checkPidExists($pidFile) {
-        $sockFile = sys_get_temp_dir() . '/php.apppicker-cron2.manager.sock';
+        $sockFile = $this->_socketFile;
 
         if (file_exists($pidFile)) {
             if (!$this->pidExists(file_get_contents($pidFile))) {
