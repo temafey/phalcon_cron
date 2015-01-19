@@ -1,6 +1,8 @@
 <?php
 namespace CronManager\Traits\Daemon\Socket;
 
+use CronManager\Tools\Stuff\PidChecker;
+
 trait Server
 {
 	/**
@@ -43,6 +45,10 @@ trait Server
 	 */
 	protected function _initSocket()
 	{
+        $pidFile = $this->_pidFile;
+        $pidChecker = new PidChecker();
+        $pidChecker->checkPidExists($pidFile, $this->_socketFile);
+
 		$this->_errno = 0;
 		$this->_errstr = '';
 		$this->_socket = stream_socket_server($this->_socketFile, $this->_errno, $this->_errstr);
