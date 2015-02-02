@@ -24,12 +24,6 @@ class Producer extends Executable
         Init::_init as _connectionInit;
         Add::_init as _addInit;
     }
-
-	/**
-	 * Queue objectg
-	 * @var \Thumper\Producer
-	 */
-	protected $_queueProducer;
 	
 	/**
 	 * Actual next minute jobs
