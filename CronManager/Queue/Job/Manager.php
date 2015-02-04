@@ -638,7 +638,6 @@ class Manager extends AbstractManager
 	 */
 	protected function _daemonClose()
 	{
-        echo "Blya!!!\n";
 		$this->_closeEvents();
 		$this->_closeBuffers();
 		$this->_closeSocketConnections();

@@ -1,6 +1,13 @@
 <?php
+/**
+ * @namespace
+ */
 namespace CronManager\Traits\Daemon\Socket;
 
+/**
+ * Class Client
+ * @package CronManager\Traits\Daemon\Socket
+ */
 trait Client
 {
 	/**

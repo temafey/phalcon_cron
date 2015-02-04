@@ -1,7 +1,13 @@
 <?php
-
+/**
+ * @namespace
+ */
 namespace CronManager\Tools\Stuff;
 
+/**
+ * Class PidChecker
+ * @package CronManager\Tools\Stuff
+ */
 class PidChecker
 {
     /**
