@@ -11,7 +11,8 @@ use CronManager\Manager\AbstractManager,
 	CronManager\Traits\Daemon\Logs,
 	CronManager\Traits\Daemon\Socket\Server,
 	CronManager\Traits\Locking,
-    CronManager\Queue\Job\Connection\Init;
+    CronManager\Queue\Job\Connection\Init,
+    CronManager\Tools\Stuff\PidChecker;
 
 /**
  * Class Manager
@@ -86,6 +87,12 @@ class Manager extends AbstractManager
      */
     protected $_mainRunTaskFile = 'cron.php';
 
+    /**
+     * If true not execute destruct logic
+     * @var bool
+     */
+    protected $_noDestructing = false;
+
 	/**
 	 * Constructor
 	 * 
@@ -116,6 +123,9 @@ class Manager extends AbstractManager
 	 */
 	public function __destruct()
 	{
+        if ($this->_noDestructing) {
+            return false;
+        }
 		parent::__destruct();
 		$this->_daemonClose();
 	}
@@ -593,13 +603,24 @@ class Manager extends AbstractManager
 		$this->_errorLogFile = $this->_config->daemon->error;
 		$this->_socketFile = $this->_config->daemon->socket;
 		$this->_lockFile = $this->_config->daemon->lock;
-		
+
+        $this->_noDestructing = true;
+
+        if (PidChecker::checkIsDaemonRunning($this->getPIDFile())) {
+            echo "Process running!".PHP_EOL;
+            exit(2);
+        } else {
+            $this->deleteSocketFile();
+        }
+
 		$this->_forkInit();
-		$this->_locking();
+        $this->_noDestructing = false;
+
+        $this->_locking();
 		$this->_initPIDFile();
 	    $this->_initLogs();
 	    $this->_initObserver();
-		$this->_initSocket();
+        $this->_initSocket();
 		$this->_initEventBase();
 		$this->_initTimer();
 		
@@ -745,9 +766,22 @@ class Manager extends AbstractManager
 		$content = $this->_readEventBuffer($id, 256);
         $this->setMessage('Read new message from socket');
         $this->notify();
-		if (($params = unserialize($content))) {
+		if (\Engine\Tools\String::isSerialized($content)) {
+            $params = unserialize($content);
 			$this->_dispatch($params);
-		} else {
+		} elseif (\Engine\Tools\String::isJson($content)) {
+            $params = json_decode($content);
+            if (!is_array($params)) {
+                if (is_object($params)) {
+                    $params = (array) $params;
+                } else {
+                    $this->_message = "Params for dispatch by cron manager incorrect!";
+                    $this->notify();
+                    var_dump($content, $params);
+                }
+            }
+            $this->_dispatch($params);
+        } else {
 			var_dump($content);
 		}
 	}

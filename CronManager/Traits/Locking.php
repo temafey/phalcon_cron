@@ -36,7 +36,7 @@ trait Locking
 		} else {
 			exit;
 		}
-		
+
 		fwrite($this->_lockFH, getmypid());
 	}
 	

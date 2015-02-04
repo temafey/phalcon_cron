@@ -50,7 +50,6 @@ trait Fork
 	{
 		$this->_pid = getmypid();
 		file_put_contents($this->_pidFile, $this->_pid);
-	
 	}
 		
 	/**
@@ -74,4 +73,14 @@ trait Fork
 	{
 		return $this->_pid;
 	}
+
+    /**
+     * Return pid file full path
+     *
+     * @return string
+     */
+    public function getPIDFile()
+    {
+        return $this->_pidFile;
+    }
 }
