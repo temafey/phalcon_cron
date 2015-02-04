@@ -9,7 +9,7 @@ namespace CronManager\Queue\Job\Producer;
  * @package CronManager\Queue\Job\Producer
  */
 trait Add  
-{
+{	
 	/**
 	 * Queue producer
 	 * @var \Thumper\Producer
