@@ -12,7 +12,7 @@ use CronManager\Manager\AbstractManager,
 	CronManager\Traits\Daemon\Socket\Server,
 	CronManager\Traits\Locking,
     CronManager\Queue\Job\Connection\Init,
-    CronManager\Tools\Stuff\PidChecker;
+    CronManager\Tools\Stuff\Checker;
 
 /**
  * Class Manager
@@ -606,7 +606,7 @@ class Manager extends AbstractManager
 
         $this->_noDestructing = true;
 
-        if (PidChecker::checkIsDaemonRunning($this->getPIDFile())) {
+        if (Checker::checkIsDaemonRunning($this->getPIDFile())) {
             echo "Process running!".PHP_EOL;
             exit(2);
         } else {
@@ -766,10 +766,10 @@ class Manager extends AbstractManager
 		$content = $this->_readEventBuffer($id, 256);
         $this->setMessage('Read new message from socket');
         $this->notify();
-		if (\Engine\Tools\String::isSerialized($content)) {
+		if (Checker::isSerialized($content)) {
             $params = unserialize($content);
 			$this->_dispatch($params);
-		} elseif (\Engine\Tools\String::isJson($content)) {
+		} elseif (Checker::isJson($content)) {
             $params = json_decode($content);
             if (!is_array($params)) {
                 if (is_object($params)) {
